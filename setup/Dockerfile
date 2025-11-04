@@ -94,6 +94,8 @@ RUN apt install -y  \
     ros-${ROS2_DISTRO}-rqt* \
     ros-${ROS2_DISTRO}-tf-transformations  \
     ros-${ROS2_DISTRO}-joy
+
+RUN apt install -y  ros-${ROS2_DISTRO}-rviz2
 # setup ros2 environment variables
 RUN echo "source /ros_entrypoint.sh" >> $HOME/.bashrc
 RUN echo "export ROS_DOMAIN_ID=40" >> $HOME/.bashrc

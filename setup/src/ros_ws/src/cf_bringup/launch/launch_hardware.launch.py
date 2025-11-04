@@ -62,9 +62,16 @@ def parse_yaml(context):
             output='screen',
             parameters= [motion_capture_params],
         ),
+        # Node(
+        #     package='cf_utils',
+        #     executable='crazyflie_server_reconnect.py',
+        #     name='crazyflie_server',
+        #     output='screen',
+        #     parameters= server_params,
+        # )
         Node(
-            package='icuas25_competition',
-            executable='crazyflie_server_reconnect.py',
+            package='crazyflie',
+            executable='crazyflie_server.py',
             name='crazyflie_server',
             output='screen',
             parameters= server_params,
@@ -74,17 +81,22 @@ def generate_launch_description():
     default_crazyflies_yaml_path = os.path.join(
         get_package_share_directory('cf_bringup'),
         'config',
-        'crazyflies_icuas.yaml')
+        'crazyflie_robots_hardware.yaml')
     
     default_motion_capture_yaml_path = os.path.join(
         get_package_share_directory('cf_bringup'),
         'config',
         'motion_capture.yaml')
 
+    # default_rviz_config_path = os.path.join(
+    #     get_package_share_directory('crazyflie'),
+    #     'config',
+    #     'config.rviz')
+    
     default_rviz_config_path = os.path.join(
-        get_package_share_directory('crazyflie'),
+        get_package_share_directory('cf_bringup'),
         'config',
-        'config.rviz')
+        'rviz_trc.rviz')
     
     return LaunchDescription([
         DeclareLaunchArgument('crazyflies_yaml_file', 

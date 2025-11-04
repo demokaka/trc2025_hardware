@@ -37,12 +37,53 @@ update_con_src:
 	docker cp $(SRC_DIR)/ros_ws/src/. $(CONTAINER_NAME):/root/ros_ws/src
 
 
+######################################################
+##### Proxy management #####
+
+install_jq:
+	@if [ ! -f /usr/bin/jq ]; then\
+		sudo apt install -y jq;\
+	fi
+
+enable_proxy: install_jq
+	@echo "Enabling proxy configuration for Docker"
+
+	@if [ -f /etc/docker/daemon.json ]; then \
+		jq -s ".[0] * .[1]" /etc/docker/daemon.json proxy-config/daemon.json | sudo tee /etc/docker/daemon.json > /dev/null;\
+	else \
+		sudo cp proxy-config/daemon.json /etc/docker;\
+	fi
+	@sudo systemctl restart docker.service
+
+	@if [ -f ~/.docker/config.json ]; then \
+		jq -s ".[0] * .[1]" ~/.docker/config.json proxy-config/config.json > /tmp/config.json;\
+		mv /tmp/config.json ~/.docker/config.json;\
+	else \
+		cp proxy-config/config.json ~/.docker;\
+	fi
+
+disable_proxy: install_jq
+	@echo "Disabling proxy configuration for Docker"
+
+	@if [ -f /etc/docker/daemon.json ]; then\
+		jq "del(.proxies)" /etc/docker/daemon.json | sudo tee /etc/docker/daemon.json > /dev/null;\
+		sudo systemctl restart docker.service;\
+	fi
+
+	@if [ -f ~/.docker/config.json ]; then\
+		jq "del(.proxies)" ~/.docker/config.json > /tmp/config.json;\
+		mv /tmp/config.json ~/.docker/config.json;\
+	fi
+
+######################################################
+
 
 
 ######################################################
 
 build_img:
-	docker build -t $(IMAGE_NAME) -f ./Dockerfile ..
+	docker build --network host \
+	-t $(IMAGE_NAME) -f ./Dockerfile ..
 
 
 ##### Docker container #####	

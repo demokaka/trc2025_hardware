@@ -24,6 +24,11 @@ install(PROGRAMS
   DESTINATION share/${PROJECT_NAME}/scripts
 )
 
+install(PROGRAMS
+  scripts/crazyflie_server_reconnect.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
