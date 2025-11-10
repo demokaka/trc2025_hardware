@@ -66,10 +66,10 @@ robot_types:
       enabled: true
       default_topics:
         pose:
-          frequency: 100 # Hz
+          frequency: 20 # Hz
       custom_topics:
         velocity: 
-          frequency: 100
+          frequency: 20
           vars: ["stateEstimate.vx", "stateEstimate.vy", "stateEstimate.vz"]
 
 # global settings for all robots

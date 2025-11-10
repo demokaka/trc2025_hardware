@@ -9,7 +9,7 @@
       poses:
         qos:
           mode: "sensor"
-          deadline: 100 # Hz
+          deadline: 50 # Hz
 
     marker_configurations:
       default: # for standard Crazyflie
