@@ -1,14 +1,17 @@
-simid: 1
+simid: 4
 
 uris:
 # - radio://0/80/2M/E7E7E7E7E1
-- radio://0/80/2M/E7E7E7E7E2
+- radio://0/80/2M/E7E7E7E7E7
+# - radio://0/80/2M/E7E7E7E7E2
 # - radio://0/80/2M/E7E7E7E7E3
 # - radio://0/80/2M/E7E7E7E7E9
 
 drone_bodies:
 # - DroneE1
-- DroneE2
+# - DroneE7
+- DroneEE7
+# - DroneE2
 # - DroneE3
 # - DroneE9
 
@@ -42,11 +45,11 @@ PWM0:
 # E1
 - 40000
 # E2
-# - 45000
+- 40872
 # E3
-- 40000
+- 42420
 # E9
-- 40000
+- 40640
 
 bias:
 - [0.0,0.0]

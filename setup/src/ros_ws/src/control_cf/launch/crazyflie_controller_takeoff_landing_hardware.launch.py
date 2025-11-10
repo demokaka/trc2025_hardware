@@ -21,7 +21,7 @@ def generate_launch_description():
     # Launch the Crazyflie controller
     controller_node = Node(
         package='control_cf',
-        executable='crazyflie_controller_game.py',
+        executable='crazyflie_controller_takeoff_landing.py',
         name='crazyflie_controller',
         output='screen'
     )

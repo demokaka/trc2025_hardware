@@ -35,6 +35,7 @@ from control_cf.replicatordynamics import *
 from control_cf.save_rds import *
 
 
+
 QOSP = QoSProfile(
     history=HistoryPolicy.KEEP_LAST,
     depth=1,
@@ -48,18 +49,18 @@ class CrazyflieController(Node):
         super().__init__('crazyflie_control_node')
 
         # Load parameters from YAML for the simulation
-        config_file = os.path.join(get_package_share_directory('control_cf'), 'config', 'Config_Crazyflie_sim.yaml')
+        config_file = os.path.join(get_package_share_directory('control_cf'), 'config', 'Config_Crazyflie_hardware.yaml')
         self.system_parameters = self.load_params(config_file)
 
         # controller_config = os.path.join(get_package_share_directory('control_cf'), 'config', 'Config_MPC.yaml')
         # solver_config = self.load_mpc_configuration(controller_config)
 
         self.no_drones = len(self.system_parameters['drone_bodies'])
-        # self.pose_subscriber = self.create_subscription(NamedPoseArray, f'/poses', self.poses_callback, QOSP, callback_group=ReentrantCallbackGroup())
-        self.odom_subscribers = {
-            i: self.create_subscription(Odometry, f'/crazyflie_{i}/odom', partial(self.odom_callback, idx=i-1), 10)
-            for i in range(1, self.no_drones + 1)
-        }
+        self.pose_subscriber = self.create_subscription(NamedPoseArray, f'/poses', self.poses_callback, QOSP, callback_group=ReentrantCallbackGroup())
+        # self.odom_subscribers = {
+        #     i: self.create_subscription(Odometry, f'/crazyflie_{i}/odom', partial(self.odom_callback, idx=i-1), 10)
+        #     for i in range(1, self.no_drones + 1)
+        # }
         self.state = dict.fromkeys(self.drone_bodies, np.empty((0, 13)))  # (x, y, z, vx, vy, vz, qx, qy, qz, qw, wx, wy, wz)
         self.current_step = 0
 
@@ -169,6 +170,10 @@ class CrazyflieController(Node):
 
         self.start_time = time.time()
 
+    def arm(self, scf):
+        scf.cf.platform.send_arming_request(True)
+        time.sleep(1.0)
+
     def start_swarm(self):
         """ Initializes the swarm after QTM is ready. """
         try:
@@ -177,9 +182,12 @@ class CrazyflieController(Node):
 
             self.swarm = Swarm(self.uris, factory=factory)
             self.swarm.open_links()
+            
             self.swarm.reset_estimators()
             self.get_logger().info("Estimators have been reset")
 
+            self.swarm.parallel_safe(self.arm)
+            
             self.swarm.parallel_safe(self.wait_for_param_download)
             self.swarm.sequential(self.unlock_safety_check)
 
@@ -244,7 +252,7 @@ class CrazyflieController(Node):
         self.T_coeff = system_parameters['T_coeff']
         self.alpha = system_parameters['alpha']
         self.PWM0 = system_parameters['PWM0']
-        self.v_land = 0.03  # m/s
+        self.v_land = 0.1  # m/s
         self.Tto = 10  # Takeoff time in seconds
 
         return system_parameters
@@ -443,7 +451,7 @@ class CrazyflieController(Node):
                     # print(f'p0 = {p0}')
                     # problem = lambda t, p, A_=simulator['A_sim'][:,:,k],ref_=ref_rd[j,k+1],gap_=gap[j,:,k_s[k]]: replicatordynamics(t, p, A_, ref_, gap_)
                     # problem = lambda t, p: replicatordynamics(t, p, simulator['A_sim'][:,:,k], ref_rd[j,k+1], gap[j,:])
-                    problem = lambda t, p: replicatordynamics(t, p, self.simulator['A_sim'][:,:,self.current_step], self.ref_full_rd[j,self.current_step], self.gap[j,:])
+                    problem = lambda t, p: replicatordynamics(t, p, self.simulator['A_sim'][:,:,self.current_step], self.ref_full_rd[j,self.current_step], self.gap[j,0:self.no_drones])
                     # problem = lambda t, p: replicatordynamics(t, p, simulator['A_sim'][:,:,cnt], ref_full_rd[j,cnt+1], gap[j,[0,3]])
                     rtol = 1e-6             # reduce the error tolerance of the solver(its default value of 1e-3 (0.001))
                                             # either we can adjust absolute tolerance using atol
@@ -458,7 +466,7 @@ class CrazyflieController(Node):
                     for m in range(self.rd_params['nbr_steps']):
 
                         self.simulator['p_sim'][j, :, m+1, self.current_step] = p_cur[:, m]
-                        self.simulator['F_sim'][:,j,m,self.current_step] = self.gap[j,:].T - p_cur[:, m]
+                        self.simulator['F_sim'][:,j,m,self.current_step] = self.gap[j,0:self.no_drones].T - p_cur[:, m]
                         # self.simulator['F_sim'][:,j,m,cnt] = gap[j,[0,3]].T - p_cur[:, m]
                         # self.simulator['F_sim'][-1,j,m,cnt] = -ref_rd[j, k+1]
                         self.simulator['F_sim'][-1,j,m,self.current_step] = -self.ref_full_rd[j, self.current_step]

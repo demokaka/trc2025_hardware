@@ -1,5 +1,7 @@
 IMAGE_NAME="trc25_hardware_img:1.0.0"
 CONTAINER_NAME="trc25_hardware_img_cont_01"
+IMAGE_NAME_BL="trc25_hardware_bl_img:1.0.0"
+CONTAINER_NAME_BL="trc25_hardware_bl_img_cont_01"
 
 # ENVIRONMENT += -e "GZ_SIM_RESOURCE_PATH="/root/ros_ws/src/multidrones_ws/multidrones_test/models/gazebo/""
 # Define the folder where all sub-Makefiles are stored
@@ -80,10 +82,13 @@ disable_proxy: install_jq
 
 
 ######################################################
-
 build_img:
 	docker build --network host \
 	-t $(IMAGE_NAME) -f ./Dockerfile ..
+
+build_img_bl:
+	docker build --network host \
+	-t $(IMAGE_NAME_BL) -f ./Dockerfile.bl ..
 
 
 ##### Docker container #####	
@@ -116,9 +121,39 @@ else
 	xhost -local:root
 endif
 
+create_con_bl: build_img_bl
+ifeq ($(filter linux linux_nogpu, $(OPTION)),)
+	@docker run -it \
+	--rm \
+	--name $(CONTAINER_NAME_BL) \
+	$(ENVIRONMENT) \
+	$(DEV) \
+	$(NET) \
+	$(GPU) \
+	$(VOLUME) \
+	$(IMAGE_NAME_BL) \
+	bash
+else
+	xhost +local:root
+	@docker run -it \
+	--rm \
+	--name $(CONTAINER_NAME_BL) \
+	$(ENVIRONMENT) \
+	$(DEV) \
+	$(NET) \
+	$(GPU) \
+	$(VOLUME) \
+	$(IMAGE_NAME_BL) \
+	bash
+	
+	xhost -local:root
+endif
+
 access_con:
 	docker exec -it $(CONTAINER_NAME) bash 
 
+access_con_bl:
+	docker exec -it $(CONTAINER_NAME_BL) bash 
 
 ##### Clean images/containers #####
 # remove docker image
