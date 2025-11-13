@@ -67,7 +67,7 @@ class CrazyflieController(Node):
         self.controls = {}
         self.T_land = {}
         self.comp_times = []
-        self.T_takeoff = 5
+        self.T_takeoff = 7
         self.T_hovering1 = 2
         self.T_hovering2 = 2
         self.T_landing = 5

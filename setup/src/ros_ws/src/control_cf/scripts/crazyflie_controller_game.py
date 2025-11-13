@@ -500,8 +500,8 @@ class CrazyflieController(Node):
                             self.simulator['xref_sim'][3:,i,self.current_step] = self.ref[self.uris[i]][3:,self.current_step]
 
             else:                           # if there is only 1 agent => do not run game theory !!!
-                self.simulator['xref_sim'][0:3,0,self.current_step] = self.ref[self.uris[0]][0:3,self.current_step+1]
-                self.simulator['xref_sim'][3:,0,self.current_step] = self.ref[self.uris[0]][3:,self.current_step+1] + self.gap_vel[:,0]
+                self.simulator['xref_sim'][0:3,0,self.current_step] = self.ref[self.uris[0]][0:3,self.current_step]
+                self.simulator['xref_sim'][3:,0,self.current_step] = self.ref[self.uris[0]][3:,self.current_step] + self.gap_vel[:,0]
 
 
             tic = time.time()
